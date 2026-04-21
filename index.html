@@ -122,18 +122,36 @@ function createKeypad(){
   const pad=document.getElementById("keypad");
   pad.innerHTML="";
 
-  const layout = [1,2,3,4,5,6,7,8,9,0];
-
-  layout.forEach((n)=>{
+  // numbers 1-9
+  const nums=[1,2,3,4,5,6,7,8,9];
+  nums.forEach(n=>{
     let btn=document.createElement("button");
     btn.innerText=n;
     btn.onclick=()=>answer.value+=n;
-
-    if(n===0){ btn.style.gridColumn="2"; }
-
     pad.appendChild(btn);
   });
 
+  // BACKSPACE (left of 0)
+  let backBtn=document.createElement("button");
+  backBtn.innerText="⌫";
+  backBtn.onclick=()=>{
+    answer.value = answer.value.slice(0, -1);
+  };
+  pad.appendChild(backBtn);
+
+  // 0 (center)
+  let zeroBtn=document.createElement("button");
+  zeroBtn.innerText="0";
+  zeroBtn.onclick=()=>answer.value+="0";
+  pad.appendChild(zeroBtn);
+
+  // ENTER (right of 0)
+  let enterBtn=document.createElement("button");
+  enterBtn.innerText="Enter";
+  enterBtn.onclick=()=>checkAnswer();
+  pad.appendChild(enterBtn);
+
+  // Clear full width
   let clearBtn=document.createElement("button");
   clearBtn.innerText="Clear";
   clearBtn.onclick=()=>answer.value="";
