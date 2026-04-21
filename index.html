@@ -27,6 +27,7 @@ button:hover{background:#388e3c}
 <div class="container">
 <h2>Sum the Numbers</h2>
 
+<div id="controls">
 <select id="timeSelect">
 <option value="60">1 Min</option>
 <option value="120">2 Min</option>
@@ -35,14 +36,24 @@ button:hover{background:#388e3c}
 <option value="300">5 Min</option>
 </select>
 
+<input type="number" id="totalNumbers" placeholder="Total numbers (e.g. 10)" min="1" max="50">
+
+<input type="number" id="minRange" placeholder="Min number (e.g. 1)">
+<input type="number" id="maxRange" placeholder="Max number (e.g. 9)">
+
 <button onclick="startGame()">Start</button>
+</div>
 
 <div class="numbers" id="numbers"></div>
 
 <input type="text" id="answer" placeholder="Enter sum">
-<button onclick="checkAnswer()">Submit</button>
 
 <div class="keypad" id="keypad"></div>
+
+<div id="gameActions" style="display:none;">
+<button onclick="restartGame()">Restart</button>
+<button onclick="resumeGame()">Resume</button>
+</div>
 
 <div id="result"></div>
 <div class="timer" id="timer"></div>
@@ -52,13 +63,14 @@ button:hover{background:#388e3c}
 let numbers=[],correctSum=0,timeLeft=0,timerInterval,gameActive=false;
 let correctCount=0,wrongCount=0;
 
-// ENTER KEY
 answer.addEventListener("keydown",e=>{if(e.key==="Enter") checkAnswer();});
-
-// VALIDATION
 answer.addEventListener("input",e=>{e.target.value=e.target.value.replace(/[^0-9]/g,'');});
 
-// RANDOM NON-OVERLAPPING PLACEMENT
+function getRandomColor(){
+  const colors=["#ff5252","#ff9800","#ffeb3b","#4caf50","#00bcd4","#2196f3","#9c27b0","#e91e63","#00e676"];
+  return colors[Math.floor(Math.random()*colors.length)];
+}
+
 function generateNumbers(){
   const container=document.getElementById("numbers");
   container.innerHTML="";
@@ -74,8 +86,14 @@ function generateNumbers(){
     });
   }
 
-  for(let i=0;i<10;i++){
-    let num=Math.floor(Math.random()*9)+1;
+  let total = parseInt(totalNumbers.value) || 10;
+  let min = parseInt(minRange.value) || 1;
+  let max = parseInt(maxRange.value) || 9;
+
+  if(min > max){ [min, max] = [max, min]; }
+
+  for(let i=0;i<total;i++){
+    let num=Math.floor(Math.random()*(max-min+1))+min;
     numbers.push(num);
     correctSum+=num;
 
@@ -84,7 +102,7 @@ function generateNumbers(){
       x=Math.random()*90+5;
       y=Math.random()*80+10;
       attempts++;
-      if(attempts>200) break;
+      if(attempts>300) break;
     }while(!isFarEnough(x,y));
 
     placed.push({x,y});
@@ -94,32 +112,37 @@ function generateNumbers(){
     span.innerText=num;
     span.style.left=x+"%";
     span.style.top=y+"%";
+    span.style.color=getRandomColor();
 
     container.appendChild(span);
   }
 }
 
-// KEYPAD
 function createKeypad(){
   const pad=document.getElementById("keypad");
   pad.innerHTML="";
-  let nums=[1,2,3,4,5,6,7,8,9,0];
-  nums.sort(()=>Math.random()-0.5);
 
-  nums.forEach(n=>{
+  const layout = [1,2,3,4,5,6,7,8,9,0];
+
+  layout.forEach((n)=>{
     let btn=document.createElement("button");
     btn.innerText=n;
     btn.onclick=()=>answer.value+=n;
+
+    if(n===0){ btn.style.gridColumn="2"; }
+
     pad.appendChild(btn);
   });
 
   let clearBtn=document.createElement("button");
   clearBtn.innerText="Clear";
   clearBtn.onclick=()=>answer.value="";
+  clearBtn.style.gridColumn="1 / span 3";
   pad.appendChild(clearBtn);
 }
 
 function startGame(){
+  document.getElementById("controls").style.display="none";
   generateNumbers();
   createKeypad();
   timeLeft=parseInt(timeSelect.value);
@@ -134,8 +157,16 @@ function updateTimer(){
   if(timeLeft<=0){
     clearInterval(timerInterval);
     gameActive=false;
-    timer.innerText="Time's up!";
+
+    document.getElementById("numbers").style.display="none";
+    document.getElementById("keypad").style.display="none";
+    document.getElementById("answer").style.display="none";
+
+    // show action buttons
+    document.getElementById("gameActions").style.display="block";
+
     result.innerText=`Correct: ${correctCount} | Incorrect: ${wrongCount}`;
+    timer.innerText="Time's up!";
     return;
   }
   let m=Math.floor(timeLeft/60),s=timeLeft%60;
@@ -144,6 +175,7 @@ function updateTimer(){
 }
 
 function checkAnswer(){
+  if(!gameActive) return;
   if(!gameActive) return;
   let val=parseInt(answer.value);
 
@@ -156,6 +188,35 @@ function checkAnswer(){
     result.innerText="Wrong!";
   }
   answer.value="";
+}
+
+function restartGame(){
+  // show controls again
+  document.getElementById("controls").style.display="block";
+  document.getElementById("gameActions").style.display="none";
+
+  document.getElementById("numbers").style.display="block";
+  document.getElementById("keypad").style.display="grid";
+  document.getElementById("answer").style.display="block";
+
+  result.innerText="";
+  timer.innerText="";
+}
+
+function resumeGame(){
+  document.getElementById("gameActions").style.display="none";
+
+  document.getElementById("numbers").style.display="block";
+  document.getElementById("keypad").style.display="grid";
+  document.getElementById("answer").style.display="block";
+
+  // restart with previous settings (no asking again)
+  generateNumbers();
+  timeLeft=parseInt(timeSelect.value);
+  gameActive=true;
+  result.innerText="";
+  clearInterval(timerInterval);
+  timerInterval=setInterval(updateTimer,1000);
 }
 </script>
 </body>
