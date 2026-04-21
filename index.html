@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sum Game</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      background: white;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 420px;
+    }
+    h2 { font-size: 22px; margin-bottom: 15px; }
+    select, input {
+      padding: 12px;
+      font-size: 16px;
+      width: 100%;
+      margin-bottom: 12px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+    button {
+      padding: 12px;
+      font-size: 16px;
+      border: none;
+      border-radius: 10px;
+      background: #4CAF50;
+      color: white;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 10px;
+    }
+    .numbers {
+      font-size: 26px;
+      margin: 20px 0;
+      letter-spacing: 6px;
+      word-wrap: break-word;
+    }
+    .timer { font-size: 18px; margin-top: 10px; }
+    #result { font-size: 18px; margin-top: 10px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Sum the Numbers</h2>
+
+    <select id="timeSelect">
+      <option value="60">1 Minute</option>
+      <option value="120">2 Minutes</option>
+      <option value="180">3 Minutes</option>
+      <option value="240">4 Minutes</option>
+      <option value="300">5 Minutes</option>
+    </select>
+
+    <button onclick="startGame()">Start Game</button>
+
+    <div class="numbers" id="numbers"></div>
+
+    <input type="text" id="answer" placeholder="Enter sum" oninput="validateInput(this)">
+    <button onclick="checkAnswer()">Submit</button>
+
+    <div id="result"></div>
+    <div class="timer" id="timer"></div>
+  </div>
+
+  <script>
+    let numbers = [];
+    let correctSum = 0;
+    let timeLeft = 0;
+    let timerInterval;
+    let gameActive = false;
+    let correctCount = 0;
+    let wrongCount = 0;
+
+    function validateInput(input) {
+      input.value = input.value.replace(/[^0-9]/g, ''); // allow only numbers
+    }
+
+    function generateNumbers() {
+      numbers = [];
+      correctSum = 0;
+      for (let i = 0; i < 10; i++) {
+        let num = Math.floor(Math.random() * 9) + 1;
+        numbers.push(num);
+        correctSum += num;
+      }
+      document.getElementById("numbers").innerText = numbers.join(" ");
+    }
+
+    function startGame() {
+      generateNumbers();
+      timeLeft = parseInt(document.getElementById("timeSelect").value);
+      document.getElementById("result").innerText = "";
+      document.getElementById("answer").value = "";
+      correctCount = 0;
+      wrongCount = 0;
+      gameActive = true;
+      clearInterval(timerInterval);
+      timerInterval = setInterval(updateTimer, 1000);
+    }
+
+    function updateTimer() {
+      if (timeLeft <= 0) {
+        clearInterval(timerInterval);
+        gameActive = false;
+        document.getElementById("timer").innerText = "Time's up!";
+        document.getElementById("result").innerText = `Correct: ${correctCount} | Incorrect: ${wrongCount}`;
+        return;
+      }
+      let minutes = Math.floor(timeLeft / 60);
+      let seconds = timeLeft % 60;
+      document.getElementById("timer").innerText = `Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+      timeLeft--;
+    }
+
+    function checkAnswer() {
+      if (!gameActive) return;
+
+      let userAnswer = parseInt(document.getElementById("answer").value);
+
+      if (userAnswer === correctSum) {
+        correctCount++;
+        document.getElementById("result").innerText = "Correct!";
+        generateNumbers();
+      } else {
+        wrongCount++;
+        document.getElementById("result").innerText = "Wrong! Try again";
+      }
+
+      document.getElementById("answer").value = "";
+    }
+  </script>
+</body>
+</html>
